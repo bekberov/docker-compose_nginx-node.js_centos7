@@ -1,0 +1,48 @@
+---
+nginx:
+    build: ./nginx
+    dockerfile: Dockerfile
+    container_name: nginx_test
+    links:
+        - node.js:node.js
+    volumes:
+        - "/etc/nginx/sites-enabled"
+        - "/etc/nginx/certs"
+        - "/etc/nginx/conf.d"
+        - "/var/log/nginx"
+        - "/var/www/html"
+    ports:
+        - "80:80"
+
+
+node.js:
+    build: ./node.js
+    dockerfile: Dockerfile
+    container_name: node.js
+#    links:
+#        - redis
+
+
+############################################
+
+web:
+  build: ./app
+  volumes:
+    - "./app:/src/app"
+  ports:
+    - "3030:3000"
+  links:
+    - "db:redis"
+  command: nodemon -L app/bin/www
+
+nginx:
+  restart: always
+  build: ./nginx/
+  ports:
+    - "80:80"
+  volumes:
+    - /www/public
+  volumes_from:
+    - web
+  links:
+    - web:web
